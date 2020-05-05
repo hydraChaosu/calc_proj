@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      #calc {
+        display: flex;
+        flex-direction: column;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(128, 128, 128, 0.2);
+      }
+      #view {
+        height: 15%;
+        padding: 10px;
+      }
+
+      #memoryButtons {
+        height: 10%;
+        display: flex;
+        justify-content: center;
+      }
+      #memoryButtons button {
+        flex-basis: 19%;
+        background-color: rgba(128, 128, 128, 0.25);
+      }
+
+      p {
+        text-align: right;
+        font-family: "Roboto", sans-serif;
+      }
+
+      p#main {
+        font-size: 3rem;
+        font-weight: bold;
+        color: black;
+      }
+      p#secondary {
+        color: gray;
+      }
+
+      button {
+        background-color: #fff;
+        margin: 1px;
+        border: none;
+      }
+      button#\= {
+        background-color: rgba(128, 128, 128, 0.6);
+      }
+      #buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        flex-grow: 1;
+      }
+      #buttons button {
+        flex-basis: 24%;
+      }
+
+      #buttons .darkened {
+        background-color: rgba(128, 128, 128, 0.4);
+      }
+
+      #buttons button:hover,
+      #memoryButtons button:hover {
+        background-color: rgba(128, 128, 128, 0.8);
+        /* transform: scale(1.04); */
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="calc">
+      <div id="view">
+        <p id="secondary">1</p>
+        <p id="main">0</p>
+      </div>
+      <div id="memoryButtons">
+        <button id="MC">MC</button>
+        <button id="MR">MR</button>
+        <button id="M+">M+</button>
+        <button id="M-">M-</button>
+        <button id="MS">MS</button>
+        <!-- <button>M></button> diffrent memory -->
+      </div>
+      <div id="buttons">
+        <button id="%" class="darkened">%</button>
+        <button id="CE" class="darkened">CE</button>
+        <button id="C" class="darkened">C</button>
+        <button id="DEL" class="darkened">DEL</button>
+        <button id="1/x" class="darkened">1/x</button>
+        <button id="x2" class="darkened">x<span class="power">2</span></button>
+        <button id="sqrt" class="darkened">2sqrt</button>
+        <button id="div" class="darkened">divide%</button>
+        <button id="7" class="numbers">7</button>
+        <button id="8" class="numbers">8</button>
+        <button id="9" class="numbers">9</button>
+        <button id="x" class="darkened">X</button>
+        <button id="4" class="numbers">4</button>
+        <button id="5" class="numbers">5</button>
+        <button id="6" class="numbers">6</button>
+        <button id="-" class="darkened">-</button>
+        <button id="1" class="numbers">1</button>
+        <button id="2" class="numbers">2</button>
+        <button id="3" class="numbers">3</button>
+        <button id="+" class="darkened">+</button>
+        <button id="+/-">+/-</button>
+        <button id="0" class="numbers">0</button>
+        <button id=".">.</button>
+        <button id="=">=</button>
+      </div>
+    </div>
+    <script>
+      const state = {
+        numbers: ["0"],
+        currentNumberPosition: 0,
+        prevValue: 0,
+        value: 0,
+        value2: 0,
+        preValEq: 0,
+        view: "0",
+        secondary: "",
+        currentSign: "",
+        prevSign: "",
+        aboveZero: true,
+        dotSet: false,
+        nextMath: true,
+        memory: 0,
+      };
+
+      const MC = document.getElementById("MC");
+      MC.addEventListener("click", () => {
+        state.memory = 0;
+        console.log(state);
+      });
+      const MR = document.getElementById("MR");
+      MR.addEventListener("click", () => {
+        state.value = state.memory;
+        state.numbers[state.currentNumberPosition] = `${state.memory}`;
+        state.view = `${state.memory}`;
+        update(state);
+        console.log(state);
+      });
+      const MS = document.getElementById("MS");
+      MS.addEventListener("click", () => {
+        state.memory = state.numbers[state.currentNumberPosition];
+        console.log(state);
+      });
+      const Mplus = document.getElementById("M+");
+      Mplus.addEventListener("click", () => {
+        state.memory += state.numbers[state.currentNumberPosition];
+        console.log(state);
+      });
+
+      const Mminus = document.getElementById("M-");
+      Mminus.addEventListener("click", () => {
+        state.memory -= state.numbers[state.currentNumberPosition];
+        console.log(state);
+      });
+
+      const mainView = document.getElementById("main");
+      const secondaryView = document.getElementById("secondary");
+
+      const del = document.getElementById("DEL");
+      del.addEventListener("click", () => {
+        // if (state.view.length < 1) return;
+        const localState = { ...state };
+        state.view = localState.view.slice(0, -1);
+        state.numbers[state.currentNumberPosition] = state.view;
+        update(state);
+      });
+
+      const changeSign = document.getElementById("+/-");
+      changeSign.addEventListener("click", () => {
+        update(state, true);
+      });
+
+      const addDot = document.getElementById(".");
+      addDot.addEventListener("click", () => {
+        if (!state.dotSet) {
+          state.view = `${state.view}.`;
+          state.numbers[state.currentNumberPosition] = state.view;
+        }
+        update(state);
+      });
+
+      const clear = document.getElementById("C");
+      const clearEverything = document.getElementById("CE");
+      clear.addEventListener("click", () => {
+        state.prevValue = 0;
+        state.value = 0;
+        state.view = "0";
+        state.secondary = "";
+        state.dotSet = false;
+        state.numbers = ["0"];
+        state.currentNumberPosition = 0;
+        update(state);
+      });
+
+      clearEverything.addEventListener("click", () => {
+        // state.prevValue = 0
+        state.value = 0;
+        state.view = "0";
+        state.dotSet = false;
+        state.numbers = ["0"];
+        state.currentNumberPosition = 0;
+        update(state);
+      });
+
+      const equal = document.getElementById("=");
+      equal.addEventListener("click", () => {
+        // state.currentSign = "=";
+        state.nextMath = true;
+        const tempNumbers = state.numbers;
+
+        if (state.numbers.length === 1) return;
+        switch (state.currentSign) {
+          case "+":
+            state.numbers = [
+              `${parseFloat(tempNumbers[0]) + parseFloat(tempNumbers[1])}`,
+              "0",
+            ];
+            state.view = `${
+              parseFloat(tempNumbers[0]) + parseFloat(tempNumbers[1])
+            }`;
+            state.preValEq = tempNumbers[1];
+            break;
+          case "-":
+            state.numbers = [
+              `${parseFloat(tempNumbers[0]) - parseFloat(tempNumbers[1])}`,
+              "0",
+            ];
+            state.view = `${
+              parseFloat(tempNumbers[0]) - parseFloat(tempNumbers[1])
+            }`;
+            state.preValEq = tempNumbers[1];
+            break;
+          case "*":
+            state.numbers = [
+              `${parseFloat(tempNumbers[0]) * parseFloat(tempNumbers[1])}`,
+              "0",
+            ];
+            state.view = `${
+              parseFloat(tempNumbers[0]) * parseFloat(tempNumbers[1])
+            }`;
+            state.preValEq = tempNumbers[1];
+            break;
+          case "/":
+            state.numbers = [
+              `${parseFloat(tempNumbers[0]) / parseFloat(tempNumbers[1])}`,
+              "0",
+            ];
+            state.view = `${
+              parseFloat(tempNumbers[0]) / parseFloat(tempNumbers[1])
+            }`;
+            state.preValEq = tempNumbers[1];
+            break;
+        }
+        console.log(state, "aft2");
+        update(state);
+      });
+
+      const numbers = document.querySelectorAll(".numbers");
+      [...numbers].forEach((element) => {
+        element.addEventListener("click", function () {
+          console.log(element.innerHTML);
+          if (
+            state.numbers[state.currentNumberPosition] === "0" &&
+            element.innerHTML === "0"
+          ) {
+            return;
+          } else if (state.numbers[state.currentNumberPosition] === "0") {
+            state.numbers[state.currentNumberPosition] = element.innerHTML;
+          } else {
+            state.numbers[state.currentNumberPosition] += element.innerHTML;
+          }
+          state.view = state.numbers[state.currentNumberPosition];
+          console.log(JSON.stringify(state, null, 2));
+          update(state);
+        });
+      });
+
+      const percent = document.getElementById("%");
+      percent.addEventListener("click", () => {
+        state.currentSign = "%";
+
+        const tempNumber = state.numbers[state.currentNumberPosition];
+
+        state.numbers[state.currentNumberPosition] = `${
+          (tempNumber * 1) / 100
+        }`;
+        state.view = `${(tempNumber * 1) / 100}`;
+        console.log(JSON.stringify(state, null, 2));
+        console.log(state);
+
+        update(state);
+      });
+
+      const oneDivide = document.getElementById("1/x");
+      oneDivide.addEventListener("click", () => {
+        state.currentSign = "1/x";
+        const tempNumber = state.numbers[state.currentNumberPosition];
+
+        state.numbers[state.currentNumberPosition] = `${1 / tempNumber}`;
+        state.view = `${1 / tempNumber}`;
+        console.log(JSON.stringify(state, null, 2));
+        console.log(state);
+
+        update(state);
+      });
+
+      const power = document.getElementById("x2");
+      power.addEventListener("click", () => {
+        state.currentSign = "x2";
+
+        const tempNumber = state.numbers[state.currentNumberPosition];
+
+        state.numbers[state.currentNumberPosition] = `${Math.pow(
+          tempNumber,
+          2
+        )}`;
+        state.view = `${Math.pow(tempNumber, 2)}`;
+        console.log(JSON.stringify(state, null, 2));
+
+        console.log(state);
+
+        update(state);
+      });
+
+      const sqrt = document.getElementById("sqrt");
+      sqrt.addEventListener("click", () => {
+        state.currentSign = "sqrt";
+
+        const tempNumber = state.numbers[state.currentNumberPosition];
+
+        state.numbers[state.currentNumberPosition] = `${Math.sqrt(
+          tempNumber,
+          2
+        )}`;
+        state.view = `${Math.sqrt(tempNumber, 2)}`;
+        console.log(JSON.stringify(state, null, 2));
+
+        console.log(state);
+
+        update(state);
+      });
+
+      const divide = document.getElementById("div");
+      divide.addEventListener("click", () => {
+        state.currentSign = "/";
+        if (state.numbers.length === 1) {
+          state.currentNumberPosition = 1;
+          state.numbers[state.currentNumberPosition] = "0";
+          console.log(JSON.stringify(state, null, 2));
+          return;
+        } else {
+          const tempNumbers = state.numbers;
+          // state.currentNumberPosition = 0;
+          state.numbers = [
+            `${parseFloat(tempNumbers[0]) / parseFloat(tempNumbers[1])}`,
+            "0",
+          ];
+          state.view = `${
+            parseFloat(tempNumbers[0]) / parseFloat(tempNumbers[1])
+          }`;
+          state.preValEq = tempNumbers[1];
+        }
+        console.log(JSON.stringify(state, null, 2));
+        update(state);
+      });
+
+      const multiply = document.getElementById("x");
+      multiply.addEventListener("click", () => {
+        state.currentSign = "*";
+        if (state.numbers.length === 1) {
+          state.currentNumberPosition = 1;
+          state.numbers[state.currentNumberPosition] = "0";
+          console.log(JSON.stringify(state, null, 2));
+          return;
+        } else {
+          const tempNumbers = state.numbers;
+          // state.currentNumberPosition = 0;
+          state.numbers = [
+            `${parseFloat(tempNumbers[0]) * parseFloat(tempNumbers[1])}`,
+            "0",
+          ];
+          state.view = `${
+            parseFloat(tempNumbers[0]) * parseFloat(tempNumbers[1])
+          }`;
+          state.preValEq = tempNumbers[1];
+        }
+        console.log(JSON.stringify(state, null, 2));
+        update(state);
+      });
+
+      const subtract = document.getElementById("-");
+      subtract.addEventListener("click", () => {
+        state.currentSign = "-";
+        if (state.numbers.length === 1) {
+          state.currentNumberPosition = 1;
+          state.numbers[state.currentNumberPosition] = "0";
+          console.log(JSON.stringify(state, null, 2));
+          return;
+        } else {
+          const tempNumbers = state.numbers;
+          // state.currentNumberPosition = 0;
+          state.numbers = [
+            `${parseFloat(tempNumbers[0]) - parseFloat(tempNumbers[1])}`,
+            "0",
+          ];
+          state.view = `${
+            parseFloat(tempNumbers[0]) - parseFloat(tempNumbers[1])
+          }`;
+          state.preValEq = tempNumbers[1];
+        }
+        console.log(JSON.stringify(state, null, 2));
+        update(state);
+      });
+
+      const add = document.getElementById("+");
+      add.addEventListener("click", () => {
+        state.currentSign = "+";
+        if (state.numbers.length === 1) {
+          state.currentNumberPosition = 1;
+          state.numbers[state.currentNumberPosition] = "0";
+          console.log(JSON.stringify(state, null, 2));
+          return;
+        } else {
+          const tempNumbers = state.numbers;
+          // state.currentNumberPosition = 0;
+          state.numbers = [
+            `${parseFloat(tempNumbers[0]) + parseFloat(tempNumbers[1])}`,
+            "0",
+          ];
+          state.view = `${
+            parseFloat(tempNumbers[0]) + parseFloat(tempNumbers[1])
+          }`;
+          state.preValEq = tempNumbers[1];
+        }
+        console.log(JSON.stringify(state, null, 2));
+        update(state);
+      });
+
+      const update = (state, signChange = false) => {
+        if (state.view === "") state.view = "0";
+        if (signChange && state.view !== "0") {
+          state.aboveZero = !state.aboveZero;
+          if (state.view[0] === "-") {
+            state.view = state.view.slice(1);
+          } else {
+            state.view = `-${state.view}`;
+            state.numbers[state.currentNumberPosition] = state.view;
+          }
+        }
+
+        state.dotSet = state.view.includes(".");
+        mainView.innerText = state.view;
+        // mainView.innerText = `${parseFloat(state.view).toFixed(2)}`;
+      };
+    </script>
+  </body>
+</html>
