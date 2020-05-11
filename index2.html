@@ -213,10 +213,8 @@
         state.functionDone = false;
         if (!state.equalClicked) {
           state.selectedCalculation(false);
-          // state.selectedCalculation = false;
         } else {
           state.selectedCalculation(true);
-          // state.selectedCalculation = true;
         }
         state.equalClicked = true;
       });
@@ -340,7 +338,7 @@
 
         if (state.prevValue !== null) {
           newValue = hasRepetedValue
-            ? displayValue - state.prevValue
+            ? displayValue - state.valueToRepeat
             : previousValue - displayValue;
 
           getRepeatedValue(hasRepetedValue, newValue);
